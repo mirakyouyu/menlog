@@ -174,6 +174,7 @@ entryForm.addEventListener('submit', async e => {
   entryForm.reset();
   selectedRating = 0;
   updateStars(0);
+  await loadEntries();
 });
 
 // --- Detail ---
@@ -219,6 +220,7 @@ document.getElementById('deleteBtn').addEventListener('click', async () => {
   detailModal.classList.add('hidden');
   currentEntryId = null;
   showToast('削除しました');
+  await loadEntries();
 });
 
 // --- Toast ---
