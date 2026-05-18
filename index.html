@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MeLog</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>MeLog</h1>
+      <button id="openFormBtn" class="btn-primary">+ 追加</button>
+    </header>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="店名・嬢名で検索..." />
+    </div>
+
+    <div id="entryList" class="entry-list">
+      <div class="loading">読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- 投稿モーダル -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>新規記録</h2>
+        <button id="closeModal" class="btn-close">×</button>
+      </div>
+      <form id="entryForm">
+        <div class="form-group">
+          <label for="shopName">店名</label>
+          <input type="text" id="shopName" placeholder="店名を入力" required />
+        </div>
+        <div class="form-group">
+          <label for="therapistName">嬢の名前</label>
+          <input type="text" id="therapistName" placeholder="名前を入力" required />
+        </div>
+        <div class="form-group">
+          <label for="rating">評価</label>
+          <div class="star-rating" id="starRating">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+          </div>
+          <input type="hidden" id="rating" value="0" />
+        </div>
+        <div class="form-group">
+          <label for="content">内容・メモ</label>
+          <textarea id="content" placeholder="コース内容、感想など..." rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary btn-full">保存</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 詳細モーダル -->
+  <div id="detailModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="detailTitle">詳細</h2>
+        <button id="closeDetailModal" class="btn-close">×</button>
+      </div>
+      <div id="detailBody"></div>
+      <div class="modal-actions">
+        <button id="deleteBtn" class="btn-danger">削除</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
