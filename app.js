@@ -156,6 +156,7 @@ entryForm.addEventListener('submit', async e => {
     shop_name: document.getElementById('shopName').value.trim(),
     therapist_name: document.getElementById('therapistName').value.trim(),
     rating: selectedRating,
+    options: document.getElementById('options').value.trim(),
     content: document.getElementById('content').value.trim(),
   };
 
@@ -197,6 +198,11 @@ function openDetail(id) {
       <div class="detail-label">評価</div>
       <div class="detail-value entry-stars">${renderStars(entry.rating)}</div>
     </div>
+    ${entry.options ? `
+    <div class="detail-section">
+      <div class="detail-label">オプション内容</div>
+      <div class="detail-value">${esc(entry.options)}</div>
+    </div>` : ''}
     <div class="detail-section">
       <div class="detail-label">内容・メモ</div>
       <div class="detail-value">${esc(entry.content)}</div>
