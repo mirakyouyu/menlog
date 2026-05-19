@@ -211,21 +211,17 @@ document.getElementById('backBtn').addEventListener('click', e => {
 // --- Add modal ---
 document.getElementById('openFormBtn').addEventListener('click', () => {
   entryForm.reset();
-  selectedRating = 0;
-  updateStars(0);
+  resetFormState();
   if (currentShopName) {
     document.getElementById('shopName').value = currentShopName;
   }
   renderShopPicker();
-  selectedPresets = new Set();
-  renderContentPresets();
   modal.classList.remove('hidden');
 });
 
 // --- Content presets ---
 const CONTENT_PRESETS = ['AN', 'HF', 'Gあり', 'NS', 'NN'];
 let selectedPresets = new Set();
-const contentTextarea = document.getElementById('content');
 const contentPresetList = document.getElementById('contentPresets');
 
 function renderContentPresets() {
@@ -242,30 +238,82 @@ function renderContentPresets() {
         selectedPresets.add(opt);
         btn.classList.add('selected');
       }
-      syncPresetsToContent();
     });
   });
 }
 
-function syncPresetsToContent() {
-  const presetLine = CONTENT_PRESETS.filter(o => selectedPresets.has(o)).join(', ');
-  const lines = contentTextarea.value.split('\n');
-  const firstLine = lines[0] || '';
-  const tokens = firstLine.split(/[,、\s]+/).filter(Boolean);
-  const isPresetLine = tokens.length > 0 && tokens.every(t => CONTENT_PRESETS.includes(t));
+// --- Option toggle / presets / price ---
+const OPTION_PRESETS = ['衣装チェンジ', 'オールヌード'];
+let optionToggleState = null; // 'あり' | 'なし' | null
+let selectedOptions = new Set();
+const optionToggleEl = document.getElementById('optionToggle');
+const optionDetailsEl = document.getElementById('optionDetails');
+const optionPresetList = document.getElementById('optionPresets');
+const optionPriceInput = document.getElementById('optionPrice');
 
-  if (isPresetLine) {
-    if (presetLine) {
-      lines[0] = presetLine;
-      contentTextarea.value = lines.join('\n');
-    } else {
-      contentTextarea.value = lines.slice(1).join('\n').replace(/^\n+/, '');
-    }
+function renderOptionToggle() {
+  optionToggleEl.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.val === optionToggleState);
+  });
+  if (optionToggleState === 'あり') {
+    optionDetailsEl.classList.remove('hidden');
+    renderOptionPresets();
   } else {
-    if (presetLine) {
-      contentTextarea.value = presetLine + (contentTextarea.value ? '\n' + contentTextarea.value : '');
-    }
+    optionDetailsEl.classList.add('hidden');
   }
+}
+
+function renderOptionPresets() {
+  optionPresetList.innerHTML = OPTION_PRESETS.map(opt =>
+    `<button type="button" class="preset-btn${selectedOptions.has(opt) ? ' selected' : ''}" data-opt="${esc(opt)}">${esc(opt)}</button>`
+  ).join('');
+  optionPresetList.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const opt = btn.dataset.opt;
+      if (selectedOptions.has(opt)) {
+        selectedOptions.delete(opt);
+        btn.classList.remove('selected');
+      } else {
+        selectedOptions.add(opt);
+        btn.classList.add('selected');
+      }
+    });
+  });
+}
+
+optionToggleEl.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    optionToggleState = btn.dataset.val;
+    if (optionToggleState === 'なし') {
+      selectedOptions = new Set();
+      optionPriceInput.value = '';
+    }
+    renderOptionToggle();
+  });
+});
+
+function buildOptionsText() {
+  if (optionToggleState === 'なし') return 'なし';
+  if (optionToggleState === 'あり') {
+    const items = OPTION_PRESETS.filter(o => selectedOptions.has(o)).join(', ');
+    const price = optionPriceInput.value.trim();
+    let out = 'あり';
+    if (items) out += `: ${items}`;
+    if (price) out += ` (${price}円)`;
+    return out;
+  }
+  return '';
+}
+
+function resetFormState() {
+  selectedRating = 0;
+  updateStars(0);
+  selectedPresets = new Set();
+  renderContentPresets();
+  optionToggleState = null;
+  selectedOptions = new Set();
+  optionPriceInput.value = '';
+  renderOptionToggle();
 }
 
 // --- Shop picker (modal top) ---
@@ -351,8 +399,8 @@ entryForm.addEventListener('submit', async e => {
     shop_name: document.getElementById('shopName').value.trim(),
     therapist_name: document.getElementById('therapistName').value.trim(),
     rating: selectedRating,
-    options: document.getElementById('options').value.trim(),
-    content: document.getElementById('content').value.trim(),
+    options: buildOptionsText(),
+    content: CONTENT_PRESETS.filter(o => selectedPresets.has(o)).join(', '),
   };
 
   const { error } = await db.from('entries').insert([payload]);
@@ -368,11 +416,8 @@ entryForm.addEventListener('submit', async e => {
   modal.classList.add('hidden');
   showToast('保存しました');
   entryForm.reset();
-  selectedRating = 0;
-  updateStars(0);
+  resetFormState();
   shopPickerList.innerHTML = '';
-  selectedPresets = new Set();
-  contentPresetList.innerHTML = '';
   await loadData();
   handleRoute();
 });
@@ -399,13 +444,14 @@ function openDetail(id) {
     </div>
     ${entry.options ? `
     <div class="detail-section">
-      <div class="detail-label">オプション内容</div>
+      <div class="detail-label">オプション</div>
       <div class="detail-value">${esc(entry.options)}</div>
     </div>` : ''}
+    ${entry.content ? `
     <div class="detail-section">
-      <div class="detail-label">内容・メモ</div>
+      <div class="detail-label">内容メモ</div>
       <div class="detail-value">${esc(entry.content)}</div>
-    </div>
+    </div>` : ''}
     <div class="detail-section">
       <div class="detail-label">記録日</div>
       <div class="detail-value">${formatDate(entry.created_at)}</div>

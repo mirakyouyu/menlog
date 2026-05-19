@@ -538,6 +538,65 @@ header h1 {
   font-style: italic;
 }
 
+/* Toggle group (あり/なし) */
+.toggle-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.toggle-btn {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.toggle-btn:hover { border-color: var(--accent); }
+
+.toggle-btn.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+}
+
+.option-details {
+  margin-top: 10px;
+}
+
+.option-details.hidden { display: none; }
+
+.price-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+  margin-top: 4px;
+  -moz-appearance: textfield;
+}
+
+.price-input::-webkit-outer-spin-button,
+.price-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.price-input:focus { border-color: var(--accent); }
+.price-input::placeholder { color: var(--text-muted); }
+
 /* Content preset buttons */
 .preset-list {
   display: flex;
