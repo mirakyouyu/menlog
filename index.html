@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>MeLog</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
   <div class="container">
@@ -58,11 +61,14 @@
         <h2>新規記録</h2>
         <button id="closeModal" class="btn-close">×</button>
       </div>
+      <div id="shopPicker" class="shop-picker">
+        <div class="shop-picker-label">既存の店から選ぶ</div>
+        <div id="shopPickerList" class="shop-picker-list"></div>
+      </div>
       <form id="entryForm">
         <div class="form-group">
           <label for="shopName">店名</label>
           <input type="text" id="shopName" placeholder="店名を入力" autocomplete="off" required />
-          <div id="shopNameChips" class="chip-list"></div>
         </div>
         <div class="form-group">
           <label for="therapistName">嬢の名前</label>
@@ -109,7 +115,7 @@
   <div id="toast" class="toast hidden"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="config.js?v=4"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

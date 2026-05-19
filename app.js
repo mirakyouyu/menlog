@@ -216,13 +216,13 @@ document.getElementById('openFormBtn').addEventListener('click', () => {
   if (currentShopName) {
     document.getElementById('shopName').value = currentShopName;
   }
-  renderShopChips();
+  renderShopPicker();
   modal.classList.remove('hidden');
 });
 
-// --- Shop name chips ---
+// --- Shop picker (modal top) ---
 const shopNameInput = document.getElementById('shopName');
-const shopChipList = document.getElementById('shopNameChips');
+const shopPickerList = document.getElementById('shopPickerList');
 
 function getKnownShopNames() {
   const set = new Set();
@@ -231,32 +231,25 @@ function getKnownShopNames() {
   return Array.from(set).sort((a, b) => a.localeCompare(b, 'ja'));
 }
 
-function renderShopChips() {
-  const q = shopNameInput.value.trim().toLowerCase();
-  const names = getKnownShopNames().filter(n =>
-    !q || n.toLowerCase().includes(q)
-  );
-
+function renderShopPicker() {
+  const names = getKnownShopNames();
   if (names.length === 0) {
-    shopChipList.innerHTML = '';
+    shopPickerList.innerHTML = '<div class="shop-picker-empty">まだ登録された店がありません</div>';
     return;
   }
-
-  shopChipList.innerHTML =
-    `<div class="chip-label">既存の店から選ぶ:</div>` +
-    `<div class="chips">${
-      names.map(n => `<button type="button" class="chip" data-name="${esc(n)}">${esc(n)}</button>`).join('')
-    }</div>`;
-
-  shopChipList.querySelectorAll('.chip').forEach(el => {
+  shopPickerList.innerHTML = names.map(n =>
+    `<button type="button" class="shop-pick-btn" data-name="${esc(n)}">${esc(n)}</button>`
+  ).join('');
+  shopPickerList.querySelectorAll('.shop-pick-btn').forEach(el => {
     el.addEventListener('click', () => {
       shopNameInput.value = el.dataset.name;
-      renderShopChips();
+      el.classList.add('selected');
+      shopPickerList.querySelectorAll('.shop-pick-btn').forEach(b => {
+        if (b !== el) b.classList.remove('selected');
+      });
     });
   });
 }
-
-shopNameInput.addEventListener('input', renderShopChips);
 
 document.getElementById('closeModal').addEventListener('click', () => {
   modal.classList.add('hidden');
@@ -329,7 +322,7 @@ entryForm.addEventListener('submit', async e => {
   entryForm.reset();
   selectedRating = 0;
   updateStars(0);
-  shopChipList.innerHTML = '';
+  shopPickerList.innerHTML = '';
   await loadData();
   handleRoute();
 });
