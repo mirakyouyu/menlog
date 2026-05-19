@@ -216,13 +216,13 @@ document.getElementById('openFormBtn').addEventListener('click', () => {
   if (currentShopName) {
     document.getElementById('shopName').value = currentShopName;
   }
-  hideShopSuggestions();
+  renderShopChips();
   modal.classList.remove('hidden');
 });
 
-// --- Shop name suggestions ---
+// --- Shop name chips ---
 const shopNameInput = document.getElementById('shopName');
-const shopSuggestBox = document.getElementById('shopNameSuggestions');
+const shopChipList = document.getElementById('shopNameChips');
 
 function getKnownShopNames() {
   const set = new Set();
@@ -231,41 +231,32 @@ function getKnownShopNames() {
   return Array.from(set).sort((a, b) => a.localeCompare(b, 'ja'));
 }
 
-function renderShopSuggestions() {
+function renderShopChips() {
   const q = shopNameInput.value.trim().toLowerCase();
   const names = getKnownShopNames().filter(n =>
     !q || n.toLowerCase().includes(q)
-  ).filter(n => n.toLowerCase() !== q); // 完全一致は出さない
+  );
 
   if (names.length === 0) {
-    hideShopSuggestions();
+    shopChipList.innerHTML = '';
     return;
   }
 
-  shopSuggestBox.innerHTML = names.map(n =>
-    `<div class="suggestion-item" data-name="${esc(n)}">${esc(n)}</div>`
-  ).join('');
-  shopSuggestBox.classList.remove('hidden');
+  shopChipList.innerHTML =
+    `<div class="chip-label">既存の店から選ぶ:</div>` +
+    `<div class="chips">${
+      names.map(n => `<button type="button" class="chip" data-name="${esc(n)}">${esc(n)}</button>`).join('')
+    }</div>`;
 
-  shopSuggestBox.querySelectorAll('.suggestion-item').forEach(el => {
-    el.addEventListener('mousedown', e => {
-      e.preventDefault(); // blurさせない
+  shopChipList.querySelectorAll('.chip').forEach(el => {
+    el.addEventListener('click', () => {
       shopNameInput.value = el.dataset.name;
-      hideShopSuggestions();
+      renderShopChips();
     });
   });
 }
 
-function hideShopSuggestions() {
-  shopSuggestBox.classList.add('hidden');
-  shopSuggestBox.innerHTML = '';
-}
-
-shopNameInput.addEventListener('focus', renderShopSuggestions);
-shopNameInput.addEventListener('input', renderShopSuggestions);
-shopNameInput.addEventListener('blur', () => {
-  setTimeout(hideShopSuggestions, 120);
-});
+shopNameInput.addEventListener('input', renderShopChips);
 
 document.getElementById('closeModal').addEventListener('click', () => {
   modal.classList.add('hidden');
@@ -338,7 +329,7 @@ entryForm.addEventListener('submit', async e => {
   entryForm.reset();
   selectedRating = 0;
   updateStars(0);
-  hideShopSuggestions();
+  shopChipList.innerHTML = '';
   await loadData();
   handleRoute();
 });

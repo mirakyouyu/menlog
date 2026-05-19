@@ -480,40 +480,45 @@ header h1 {
   color: var(--text-muted);
 }
 
-/* Autocomplete */
-.autocomplete {
-  position: relative;
+/* Shop name chips */
+.chip-list {
+  margin-top: 8px;
 }
 
-.suggestions {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
+.chip-list:empty { display: none; }
+
+.chip-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.chip {
   background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  max-height: 180px;
-  overflow-y: auto;
-  z-index: 10;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-}
-
-.suggestions.hidden { display: none; }
-
-.suggestion-item {
-  padding: 8px 12px;
-  font-size: 14px;
+  border-radius: 16px;
+  padding: 5px 12px;
+  font-size: 13px;
   color: var(--text);
   cursor: pointer;
-  transition: background 0.15s;
-  border-bottom: 1px solid var(--border);
+  transition: all 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
 }
 
-.suggestion-item:last-child { border-bottom: none; }
-
-.suggestion-item:hover {
+.chip:hover,
+.chip:active {
   background: var(--accent-dim);
+  border-color: var(--accent);
   color: var(--accent);
 }
 

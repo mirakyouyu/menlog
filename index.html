@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MeLog</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <div class="container">
@@ -61,10 +61,8 @@
       <form id="entryForm">
         <div class="form-group">
           <label for="shopName">店名</label>
-          <div class="autocomplete">
-            <input type="text" id="shopName" placeholder="店名を入力" autocomplete="off" required />
-            <div id="shopNameSuggestions" class="suggestions hidden"></div>
-          </div>
+          <input type="text" id="shopName" placeholder="店名を入力" autocomplete="off" required />
+          <div id="shopNameChips" class="chip-list"></div>
         </div>
         <div class="form-group">
           <label for="therapistName">嬢の名前</label>
@@ -111,7 +109,7 @@
   <div id="toast" class="toast hidden"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="config.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
