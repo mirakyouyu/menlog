@@ -2,11 +2,17 @@ const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let allEntries = [];
+let allShops = {}; // { [name]: { name, memo, updated_at } }
 let currentEntryId = null;
+let currentShopName = null;
 let selectedRating = 0;
+let isEditingMemo = false;
 
 // DOM
-const entryList = document.getElementById('entryList');
+const homeView = document.getElementById('homeView');
+const shopView = document.getElementById('shopView');
+const shopGrid = document.getElementById('shopGrid');
+const shopEntries = document.getElementById('shopEntries');
 const searchInput = document.getElementById('searchInput');
 const modal = document.getElementById('modal');
 const detailModal = document.getElementById('detailModal');
@@ -15,49 +21,149 @@ const toast = document.getElementById('toast');
 
 // --- Init ---
 (async () => {
-  await loadEntries();
+  await loadData();
   setupRealtime();
+  handleRoute();
 })();
 
-// --- Load entries ---
-async function loadEntries() {
-  const { data, error } = await db
-    .from('entries')
-    .select('*')
-    .order('created_at', { ascending: false });
+window.addEventListener('hashchange', handleRoute);
 
-  if (error) {
-    entryList.innerHTML = `<div class="empty">接続エラー: ${error.message}</div>`;
+// --- Routing ---
+function handleRoute() {
+  const hash = location.hash || '';
+  const m = hash.match(/^#\/shop\/(.+)$/);
+  if (m) {
+    currentShopName = decodeURIComponent(m[1]);
+    renderShopView();
+  } else {
+    currentShopName = null;
+    renderHomeView();
+  }
+}
+
+// --- Load data ---
+async function loadData() {
+  const [entriesRes, shopsRes] = await Promise.all([
+    db.from('entries').select('*').order('created_at', { ascending: false }),
+    db.from('shops').select('*'),
+  ]);
+
+  if (entriesRes.error) {
+    shopGrid.innerHTML = `<div class="empty">接続エラー: ${entriesRes.error.message}</div>`;
     return;
   }
 
-  allEntries = data || [];
-  renderEntries(allEntries);
+  allEntries = entriesRes.data || [];
+  allShops = {};
+  (shopsRes.data || []).forEach(s => { allShops[s.name] = s; });
 }
 
 // --- Realtime ---
 function setupRealtime() {
-  db.channel('entries')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => {
-      loadEntries();
+  db.channel('entries-ch')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, async () => {
+      await loadData();
+      if (!isEditingMemo) handleRoute();
+    })
+    .subscribe();
+  db.channel('shops-ch')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'shops' }, async () => {
+      await loadData();
+      if (!isEditingMemo) handleRoute();
     })
     .subscribe();
 }
 
-// --- Render ---
-function renderEntries(entries) {
-  if (entries.length === 0) {
-    entryList.innerHTML = '<div class="empty">まだ記録がありません</div>';
+// --- Home view ---
+function renderHomeView() {
+  homeView.classList.remove('hidden');
+  shopView.classList.add('hidden');
+
+  const shopMap = {};
+  allEntries.forEach(e => {
+    if (!shopMap[e.shop_name]) {
+      shopMap[e.shop_name] = {
+        name: e.shop_name,
+        therapists: new Set(),
+        ratings: [],
+        lastAt: e.created_at,
+      };
+    }
+    const s = shopMap[e.shop_name];
+    s.therapists.add(e.therapist_name);
+    if (e.rating > 0) s.ratings.push(e.rating);
+    if (new Date(e.created_at) > new Date(s.lastAt)) s.lastAt = e.created_at;
+  });
+
+  let shops = Object.values(shopMap);
+  const q = searchInput.value.trim().toLowerCase();
+  if (q) shops = shops.filter(s => s.name.toLowerCase().includes(q));
+  shops.sort((a, b) => new Date(b.lastAt) - new Date(a.lastAt));
+
+  if (shops.length === 0) {
+    shopGrid.innerHTML = '<div class="empty">まだ記録がありません</div>';
     return;
   }
 
-  entryList.innerHTML = entries.map(e => `
+  shopGrid.innerHTML = shops.map(s => {
+    const avg = s.ratings.length
+      ? (s.ratings.reduce((a, b) => a + b, 0) / s.ratings.length)
+      : 0;
+    return `
+      <a class="shop-card" href="#/shop/${encodeURIComponent(s.name)}">
+        <div class="shop-card-name">${esc(s.name)}</div>
+        <div class="shop-card-stars">
+          ${renderStars(Math.round(avg))}
+          <span class="shop-card-avg">${avg ? avg.toFixed(1) : '-'}</span>
+        </div>
+        <div class="shop-card-meta">嬢: ${s.therapists.size}名</div>
+      </a>
+    `;
+  }).join('');
+}
+
+// --- Shop view ---
+function renderShopView() {
+  homeView.classList.add('hidden');
+  shopView.classList.remove('hidden');
+
+  const entries = allEntries.filter(e => e.shop_name === currentShopName);
+  const therapists = new Set(entries.map(e => e.therapist_name));
+  const ratings = entries.filter(e => e.rating > 0).map(e => e.rating);
+  const avg = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length) : 0;
+
+  document.getElementById('shopTitle').textContent = currentShopName;
+  document.getElementById('shopStats').innerHTML = `
+    <span class="entry-stars">${renderStars(Math.round(avg))}</span>
+    <span class="shop-stat-num">${avg ? avg.toFixed(1) : '-'}</span>
+    <span class="shop-stat-sep">·</span>
+    <span>嬢 ${therapists.size}名</span>
+    <span class="shop-stat-sep">·</span>
+    <span>記録 ${entries.length}件</span>
+  `;
+
+  // Memo
+  const memo = (allShops[currentShopName] || {}).memo || '';
+  const memoEl = document.getElementById('shopMemo');
+  memoEl.textContent = memo || '(メモなし)';
+  memoEl.classList.toggle('empty-memo', !memo);
+  document.getElementById('shopMemoEdit').value = memo;
+  memoEl.classList.remove('hidden');
+  document.getElementById('shopMemoEdit').classList.add('hidden');
+  document.getElementById('memoActions').classList.add('hidden');
+  document.getElementById('editMemoBtn').classList.remove('hidden');
+  isEditingMemo = false;
+
+  // Entries
+  if (entries.length === 0) {
+    shopEntries.innerHTML = '<div class="empty">記録がありません</div>';
+    return;
+  }
+
+  shopEntries.innerHTML = entries.map(e => `
     <div class="entry-card" data-id="${e.id}">
       <div class="entry-card-header">
-        <div>
-          <div class="entry-shop">${esc(e.shop_name)}</div>
-          <div class="entry-therapist">${esc(e.therapist_name)}</div>
-        </div>
+        <div class="entry-therapist">${esc(e.therapist_name)}</div>
         <span class="entry-date">${formatDate(e.created_at)}</span>
       </div>
       <div class="entry-stars">${renderStars(e.rating)}</div>
@@ -65,11 +171,12 @@ function renderEntries(entries) {
     </div>
   `).join('');
 
-  document.querySelectorAll('.entry-card').forEach(card => {
+  document.querySelectorAll('#shopEntries .entry-card').forEach(card => {
     card.addEventListener('click', () => openDetail(card.dataset.id));
   });
 }
 
+// --- Helpers ---
 function renderStars(rating) {
   return [1,2,3,4,5].map(i =>
     `<span class="${i <= rating ? '' : 'off'}">★</span>`
@@ -85,22 +192,30 @@ function esc(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// --- Search ---
+// --- Search (home only) ---
 searchInput.addEventListener('input', () => {
-  const q = searchInput.value.trim().toLowerCase();
-  if (!q) { renderEntries(allEntries); return; }
-  const filtered = allEntries.filter(e =>
-    e.shop_name.toLowerCase().includes(q) ||
-    e.therapist_name.toLowerCase().includes(q)
-  );
-  renderEntries(filtered);
+  if (currentShopName) return;
+  renderHomeView();
 });
 
-// --- Modal open/close ---
+// --- Header / Nav ---
+document.getElementById('appTitle').addEventListener('click', () => {
+  location.hash = '';
+});
+
+document.getElementById('backBtn').addEventListener('click', e => {
+  e.preventDefault();
+  location.hash = '';
+});
+
+// --- Add modal ---
 document.getElementById('openFormBtn').addEventListener('click', () => {
   entryForm.reset();
   selectedRating = 0;
   updateStars(0);
+  if (currentShopName) {
+    document.getElementById('shopName').value = currentShopName;
+  }
   modal.classList.remove('hidden');
 });
 
@@ -145,7 +260,7 @@ function updateStars(value, isHover = false) {
   });
 }
 
-// --- Submit ---
+// --- Submit entry ---
 entryForm.addEventListener('submit', async e => {
   e.preventDefault();
   const btn = entryForm.querySelector('button[type=submit]');
@@ -175,7 +290,8 @@ entryForm.addEventListener('submit', async e => {
   entryForm.reset();
   selectedRating = 0;
   updateStars(0);
-  await loadEntries();
+  await loadData();
+  handleRoute();
 });
 
 // --- Detail ---
@@ -226,7 +342,46 @@ document.getElementById('deleteBtn').addEventListener('click', async () => {
   detailModal.classList.add('hidden');
   currentEntryId = null;
   showToast('削除しました');
-  await loadEntries();
+  await loadData();
+  handleRoute();
+});
+
+// --- Shop memo edit ---
+document.getElementById('editMemoBtn').addEventListener('click', () => {
+  isEditingMemo = true;
+  document.getElementById('shopMemo').classList.add('hidden');
+  document.getElementById('shopMemoEdit').classList.remove('hidden');
+  document.getElementById('memoActions').classList.remove('hidden');
+  document.getElementById('editMemoBtn').classList.add('hidden');
+  document.getElementById('shopMemoEdit').focus();
+});
+
+document.getElementById('cancelMemoBtn').addEventListener('click', () => {
+  isEditingMemo = false;
+  renderShopView();
+});
+
+document.getElementById('saveMemoBtn').addEventListener('click', async () => {
+  if (!currentShopName) return;
+  const btn = document.getElementById('saveMemoBtn');
+  btn.disabled = true;
+  btn.textContent = '保存中...';
+
+  const memo = document.getElementById('shopMemoEdit').value.trim();
+  const { error } = await db.from('shops').upsert({
+    name: currentShopName,
+    memo,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'name' });
+
+  btn.disabled = false;
+  btn.textContent = '保存';
+
+  if (error) { showToast('保存エラー: ' + error.message); return; }
+  isEditingMemo = false;
+  showToast('メモを保存しました');
+  await loadData();
+  renderShopView();
 });
 
 // --- Toast ---

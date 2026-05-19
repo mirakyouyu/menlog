@@ -45,7 +45,11 @@ header h1 {
   font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--accent);
+  cursor: pointer;
 }
+
+/* View toggle */
+.view.hidden { display: none; }
 
 /* Search */
 .search-bar {
@@ -70,6 +74,174 @@ header h1 {
 
 .search-bar input::placeholder {
   color: var(--text-muted);
+}
+
+/* Shop grid */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.shop-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.1s;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shop-card:hover {
+  border-color: var(--accent);
+  background: var(--surface2);
+}
+
+.shop-card:active {
+  transform: scale(0.99);
+}
+
+.shop-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.shop-card-stars {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--star-on);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.shop-card-stars .off { color: var(--star-off); }
+
+.shop-card-avg {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.shop-card-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Shop view */
+.btn-back {
+  display: inline-block;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-decoration: none;
+  margin-bottom: 16px;
+  transition: color 0.2s;
+}
+
+.btn-back:hover { color: var(--accent); }
+
+.shop-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.shop-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.shop-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.shop-stats .entry-stars {
+  font-size: 13px;
+  margin-right: 2px;
+}
+
+.shop-stat-num {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.shop-stat-sep {
+  color: var(--border);
+  margin: 0 2px;
+}
+
+/* Shop memo */
+.shop-memo-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.memo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.shop-memo {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.shop-memo.empty-memo {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+#shopMemoEdit {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+#shopMemoEdit:focus { border-color: var(--accent); }
+
+.memo-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.memo-actions.hidden { display: none; }
+
+/* Shop entries list */
+.shop-entries-header {
+  margin-bottom: 10px;
 }
 
 /* Entry list */
@@ -122,7 +294,8 @@ header h1 {
 .entry-therapist {
   font-size: 14px;
   color: var(--accent);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  font-weight: 600;
 }
 
 .entry-stars {
@@ -142,6 +315,7 @@ header h1 {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  margin-top: 4px;
 }
 
 .entry-date {
@@ -166,6 +340,34 @@ header h1 {
 }
 
 .btn-primary:hover { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.btn-secondary:hover { border-color: var(--accent); }
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 6px;
+  transition: opacity 0.2s;
+}
+
+.btn-link:hover { opacity: 0.75; }
 
 .btn-full { width: 100%; padding: 12px; font-size: 15px; }
 
@@ -308,6 +510,7 @@ header h1 {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 4px;
+  display: inline-block;
 }
 
 .detail-value {

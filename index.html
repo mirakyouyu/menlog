@@ -9,16 +9,45 @@
 <body>
   <div class="container">
     <header>
-      <h1>MeLog</h1>
+      <h1 id="appTitle">MeLog</h1>
       <button id="openFormBtn" class="btn-primary">+ 追加</button>
     </header>
 
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="店名・嬢名で検索..." />
+    <!-- ホーム: 店一覧 -->
+    <div id="homeView" class="view">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="店名で検索..." />
+      </div>
+      <div id="shopGrid" class="shop-grid">
+        <div class="loading">読み込み中...</div>
+      </div>
     </div>
 
-    <div id="entryList" class="entry-list">
-      <div class="loading">読み込み中...</div>
+    <!-- 店ページ -->
+    <div id="shopView" class="view hidden">
+      <a href="#" id="backBtn" class="btn-back">← 店一覧へ戻る</a>
+      <div class="shop-header">
+        <h2 id="shopTitle"></h2>
+        <div id="shopStats" class="shop-stats"></div>
+      </div>
+
+      <div class="shop-memo-section">
+        <div class="memo-header">
+          <span class="detail-label">店メモ</span>
+          <button id="editMemoBtn" class="btn-link">編集</button>
+        </div>
+        <div id="shopMemo" class="shop-memo"></div>
+        <textarea id="shopMemoEdit" class="hidden" rows="4" placeholder="店全体の感想・備考..."></textarea>
+        <div id="memoActions" class="memo-actions hidden">
+          <button id="cancelMemoBtn" class="btn-secondary">キャンセル</button>
+          <button id="saveMemoBtn" class="btn-primary">保存</button>
+        </div>
+      </div>
+
+      <div class="shop-entries-header">
+        <span class="detail-label">記録一覧</span>
+      </div>
+      <div id="shopEntries" class="entry-list"></div>
     </div>
   </div>
 
