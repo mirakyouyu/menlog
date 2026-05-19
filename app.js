@@ -217,8 +217,56 @@ document.getElementById('openFormBtn').addEventListener('click', () => {
     document.getElementById('shopName').value = currentShopName;
   }
   renderShopPicker();
+  selectedPresets = new Set();
+  renderContentPresets();
   modal.classList.remove('hidden');
 });
+
+// --- Content presets ---
+const CONTENT_PRESETS = ['AN', 'HF', 'Gあり', 'NS', 'NN'];
+let selectedPresets = new Set();
+const contentTextarea = document.getElementById('content');
+const contentPresetList = document.getElementById('contentPresets');
+
+function renderContentPresets() {
+  contentPresetList.innerHTML = CONTENT_PRESETS.map(opt =>
+    `<button type="button" class="preset-btn${selectedPresets.has(opt) ? ' selected' : ''}" data-opt="${esc(opt)}">${esc(opt)}</button>`
+  ).join('');
+  contentPresetList.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const opt = btn.dataset.opt;
+      if (selectedPresets.has(opt)) {
+        selectedPresets.delete(opt);
+        btn.classList.remove('selected');
+      } else {
+        selectedPresets.add(opt);
+        btn.classList.add('selected');
+      }
+      syncPresetsToContent();
+    });
+  });
+}
+
+function syncPresetsToContent() {
+  const presetLine = CONTENT_PRESETS.filter(o => selectedPresets.has(o)).join(', ');
+  const lines = contentTextarea.value.split('\n');
+  const firstLine = lines[0] || '';
+  const tokens = firstLine.split(/[,、\s]+/).filter(Boolean);
+  const isPresetLine = tokens.length > 0 && tokens.every(t => CONTENT_PRESETS.includes(t));
+
+  if (isPresetLine) {
+    if (presetLine) {
+      lines[0] = presetLine;
+      contentTextarea.value = lines.join('\n');
+    } else {
+      contentTextarea.value = lines.slice(1).join('\n').replace(/^\n+/, '');
+    }
+  } else {
+    if (presetLine) {
+      contentTextarea.value = presetLine + (contentTextarea.value ? '\n' + contentTextarea.value : '');
+    }
+  }
+}
 
 // --- Shop picker (modal top) ---
 const shopNameInput = document.getElementById('shopName');
@@ -323,6 +371,8 @@ entryForm.addEventListener('submit', async e => {
   selectedRating = 0;
   updateStars(0);
   shopPickerList.innerHTML = '';
+  selectedPresets = new Set();
+  contentPresetList.innerHTML = '';
   await loadData();
   handleRoute();
 });

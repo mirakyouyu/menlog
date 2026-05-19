@@ -538,6 +538,37 @@ header h1 {
   font-style: italic;
 }
 
+/* Content preset buttons */
+.preset-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.preset-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.preset-btn:hover {
+  border-color: var(--accent);
+}
+
+.preset-btn.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+}
+
 /* Star rating */
 .star-rating {
   display: flex;
