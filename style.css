@@ -532,11 +532,34 @@ header h1 {
   font-weight: 700;
 }
 
-.shop-picker-empty {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-style: italic;
+.shop-pick-new {
+  border-style: dashed;
+  color: var(--accent);
 }
+
+.shop-pick-new.selected {
+  background: var(--accent);
+  color: #000;
+  border-style: solid;
+}
+
+.new-shop-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  margin-top: 10px;
+  transition: border-color 0.2s;
+}
+
+.new-shop-input.hidden { display: none; }
+.new-shop-input:focus { border-color: var(--accent); }
+.new-shop-input::placeholder { color: var(--text-muted); }
 
 /* Toggle group (あり/なし) */
 .toggle-group {

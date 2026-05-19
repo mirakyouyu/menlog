@@ -212,10 +212,7 @@ document.getElementById('backBtn').addEventListener('click', e => {
 document.getElementById('openFormBtn').addEventListener('click', () => {
   entryForm.reset();
   resetFormState();
-  if (currentShopName) {
-    document.getElementById('shopName').value = currentShopName;
-  }
-  renderShopPicker();
+  renderShopPicker(currentShopName || null);
   modal.classList.remove('hidden');
 });
 
@@ -327,22 +324,36 @@ function getKnownShopNames() {
   return Array.from(set).sort((a, b) => a.localeCompare(b, 'ja'));
 }
 
-function renderShopPicker() {
+function renderShopPicker(preselectName) {
   const names = getKnownShopNames();
-  if (names.length === 0) {
-    shopPickerList.innerHTML = '<div class="shop-picker-empty">まだ登録された店がありません</div>';
-    return;
+  const buttons = names.map(n =>
+    `<button type="button" class="shop-pick-btn${n === preselectName ? ' selected' : ''}" data-name="${esc(n)}">${esc(n)}</button>`
+  );
+  buttons.push(`<button type="button" class="shop-pick-btn shop-pick-new" data-new="1">+ 新規追加</button>`);
+  shopPickerList.innerHTML = buttons.join('');
+
+  // Preselect if name was given
+  if (preselectName) {
+    shopNameInput.value = preselectName;
+    shopNameInput.classList.add('hidden');
+  } else {
+    shopNameInput.value = '';
+    shopNameInput.classList.add('hidden');
   }
-  shopPickerList.innerHTML = names.map(n =>
-    `<button type="button" class="shop-pick-btn" data-name="${esc(n)}">${esc(n)}</button>`
-  ).join('');
+
   shopPickerList.querySelectorAll('.shop-pick-btn').forEach(el => {
     el.addEventListener('click', () => {
-      shopNameInput.value = el.dataset.name;
+      shopPickerList.querySelectorAll('.shop-pick-btn').forEach(b => b.classList.remove('selected'));
       el.classList.add('selected');
-      shopPickerList.querySelectorAll('.shop-pick-btn').forEach(b => {
-        if (b !== el) b.classList.remove('selected');
-      });
+
+      if (el.dataset.new) {
+        shopNameInput.value = '';
+        shopNameInput.classList.remove('hidden');
+        shopNameInput.focus();
+      } else {
+        shopNameInput.value = el.dataset.name;
+        shopNameInput.classList.add('hidden');
+      }
     });
   });
 }
@@ -395,8 +406,16 @@ entryForm.addEventListener('submit', async e => {
   btn.disabled = true;
   btn.textContent = '保存中...';
 
+  const shop = document.getElementById('shopName').value.trim();
+  if (!shop) {
+    btn.disabled = false;
+    btn.textContent = '保存';
+    showToast('店を選んでください');
+    return;
+  }
+
   const payload = {
-    shop_name: document.getElementById('shopName').value.trim(),
+    shop_name: shop,
     therapist_name: document.getElementById('therapistName').value.trim(),
     rating: selectedRating,
     options: buildOptionsText(),
