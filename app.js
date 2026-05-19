@@ -414,12 +414,16 @@ entryForm.addEventListener('submit', async e => {
     return;
   }
 
+  const presetsText = CONTENT_PRESETS.filter(o => selectedPresets.has(o)).join(', ');
+  const note = document.getElementById('contentNote').value.trim();
+  const contentText = [presetsText, note].filter(Boolean).join('\n');
+
   const payload = {
     shop_name: shop,
     therapist_name: document.getElementById('therapistName').value.trim(),
     rating: selectedRating,
     options: buildOptionsText(),
-    content: CONTENT_PRESETS.filter(o => selectedPresets.has(o)).join(', '),
+    content: contentText,
   };
 
   const { error } = await db.from('entries').insert([payload]);

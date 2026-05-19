@@ -628,6 +628,24 @@ header h1 {
   margin-bottom: 8px;
 }
 
+.content-note {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  margin-top: 4px;
+}
+
+.content-note:focus { border-color: var(--accent); }
+.content-note::placeholder { color: var(--text-muted); }
+
 .preset-btn {
   background: var(--bg);
   border: 1px solid var(--border);
